@@ -25,8 +25,7 @@ const registerSchema = Yup.object().shape({
 
 const AuthForm = ({ setLoggedInUser }) => {
   const [isLogin, setIsLogin] = useState(true);
-  const [loggedInUser, setLoggedInUserState] = useState(null);
-  const navigate = useNavigate(); // Sử dụng điều hướng
+  const navigate = useNavigate();
 
   const formSchema = isLogin ? loginSchema : registerSchema;
   const {
@@ -39,17 +38,14 @@ const AuthForm = ({ setLoggedInUser }) => {
   });
 
   const onSubmit = (data) => {
-    // Kiểm tra tài khoản admin
     if (isLogin && data.email === "admin123@gmail.com" && data.password === "admin123") {
       alert("Đăng nhập thành công với tư cách Admin!");
       const adminUser = { username: "Admin", email: data.email, isAdmin: true };
-      setLoggedInUser(adminUser); // Cập nhật trạng thái người dùng đăng nhập
-      setLoggedInUserState(adminUser);
-      navigate("/admin"); // Điều hướng đến trang admin
+      setLoggedInUser(adminUser);
+      navigate("/admin");
       return;
     }
 
-    // Xử lý người dùng thông thường
     const users = JSON.parse(localStorage.getItem("users")) || [];
 
     if (isLogin) {
@@ -59,8 +55,8 @@ const AuthForm = ({ setLoggedInUser }) => {
 
       if (user) {
         alert(`Đăng nhập thành công! Chào mừng ${user.username}`);
-        setLoggedInUser(user); 
-        setLoggedInUserState(user);
+        setLoggedInUser({ ...user, isAdmin: false });
+        navigate("/");
       } else {
         alert("Sai email hoặc mật khẩu. Vui lòng thử lại.");
       }
@@ -80,106 +76,99 @@ const AuthForm = ({ setLoggedInUser }) => {
 
   return (
     <div className="auth-wrapper">
-      {loggedInUser ? (
-        <div className="welcome-message">
-          <h2>Chào mừng, {loggedInUser.username}!</h2>
-          <button onClick={() => setLoggedInUserState(null)}>Đăng xuất</button>
+      <div className="auth-container">
+        <div className="tabs">
+          <button onClick={() => setIsLogin(true)} className={isLogin ? "active" : ""}>
+            Đăng Nhập
+          </button>
+          <button onClick={() => setIsLogin(false)} className={!isLogin ? "active" : ""}>
+            Đăng Ký
+          </button>
         </div>
-      ) : (
-        <div className="auth-container">
-          <div className="tabs">
-            <button onClick={() => setIsLogin(true)} className={isLogin ? "active" : ""}>
-              Đăng Nhập
-            </button>
-            <button onClick={() => setIsLogin(false)} className={!isLogin ? "active" : ""}>
-              Đăng Ký
-            </button>
-          </div>
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
-            {!isLogin && (
-              <>
-                <div className="form-group">
-                  <label htmlFor="firstName">Họ</label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    {...register("firstName")}
-                    className={errors.firstName ? "is-invalid" : ""}
-                  />
-                  {errors.firstName && (
-                    <div className="invalid-feedback">{errors.firstName.message}</div>
-                  )}
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          {!isLogin && (
+            <>
+              <div className="form-group">
+                <label htmlFor="firstName">Họ</label>
+                <input
+                  type="text"
+                  id="firstName"
+                  {...register("firstName")}
+                  className={errors.firstName ? "is-invalid" : ""}
+                />
+                {errors.firstName && (
+                  <div className="invalid-feedback">{errors.firstName.message}</div>
+                )}
+              </div>
+              <div className="form-group">
+                <label htmlFor="lastName">Tên</label>
+                <input
+                  type="text"
+                  id="lastName"
+                  {...register("lastName")}
+                  className={errors.lastName ? "is-invalid" : ""}
+                />
+                {errors.lastName && (
+                  <div className="invalid-feedback">{errors.lastName.message}</div>
+                )}
+              </div>
+              <div className="form-group">
+                <label htmlFor="username">Tên đăng nhập</label>
+                <input
+                  type="text"
+                  id="username"
+                  {...register("username")}
+                  className={errors.username ? "is-invalid" : ""}
+                />
+                {errors.username && (
+                  <div className="invalid-feedback">{errors.username.message}</div>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Giới tính</label>
+                <div className="gender-options">
+                  <input type="radio" id="male" value="male" {...register("gender")} />
+                  <label htmlFor="male">Nam</label>
+                  <input type="radio" id="female" value="female" {...register("gender")} />
+                  <label htmlFor="female">Nữ</label>
+                  <input type="radio" id="other" value="other" {...register("gender")} />
+                  <label htmlFor="other">Khác</label>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="lastName">Tên</label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    {...register("lastName")}
-                    className={errors.lastName ? "is-invalid" : ""}
-                  />
-                  {errors.lastName && (
-                    <div className="invalid-feedback">{errors.lastName.message}</div>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label htmlFor="username">Tên đăng nhập</label>
-                  <input
-                    type="text"
-                    id="username"
-                    {...register("username")}
-                    className={errors.username ? "is-invalid" : ""}
-                  />
-                  {errors.username && (
-                    <div className="invalid-feedback">{errors.username.message}</div>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label>Giới tính</label>
-                  <div className="gender-options">
-                    <input type="radio" id="male" value="male" {...register("gender")} />
-                    <label htmlFor="male">Nam</label>
-                    <input type="radio" id="female" value="female" {...register("gender")} />
-                    <label htmlFor="female">Nữ</label>
-                    <input type="radio" id="other" value="other" {...register("gender")} />
-                    <label htmlFor="other">Khác</label>
-                  </div>
-                  {errors.gender && (
-                    <div className="invalid-feedback">{errors.gender.message}</div>
-                  )}
-                </div>
-              </>
+                {errors.gender && (
+                  <div className="invalid-feedback">{errors.gender.message}</div>
+                )}
+              </div>
+            </>
+          )}
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              {...register("email")}
+              className={errors.email ? "is-invalid" : ""}
+            />
+            {errors.email && (
+              <div className="invalid-feedback">{errors.email.message}</div>
             )}
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                {...register("email")}
-                className={errors.email ? "is-invalid" : ""}
-              />
-              {errors.email && (
-                <div className="invalid-feedback">{errors.email.message}</div>
-              )}
-            </div>
-            <div className="form-group">
-              <label htmlFor="password">Mật khẩu</label>
-              <input
-                type="password"
-                id="password"
-                {...register("password")}
-                className={errors.password ? "is-invalid" : ""}
-              />
-              {errors.password && (
-                <div className="invalid-feedback">{errors.password.message}</div>
-              )}
-            </div>
-            <button type="submit" className="btn-submit">
-              {isLogin ? "Đăng nhập" : "Tạo tài khoản"}
-            </button>
-          </form>
-        </div>
-      )}
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Mật khẩu</label>
+            <input
+              type="password"
+              id="password"
+              {...register("password")}
+              className={errors.password ? "is-invalid" : ""}
+            />
+            {errors.password && (
+              <div className="invalid-feedback">{errors.password.message}</div>
+            )}
+          </div>
+          <button type="submit" className="btn-submit">
+            {isLogin ? "Đăng nhập" : "Tạo tài khoản"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

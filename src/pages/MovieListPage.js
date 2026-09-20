@@ -1,31 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import MovieList from "../components/MovieList";
-import moviesData from "../data/moviesData"; // Dữ liệu phim
+import { getMovies } from "../data/moviesData";
 
 const MovieListPage = () => {
-  const { genre } = useParams(); // Lấy thể loại từ URL
-  const [searchTerm, setSearchTerm] = useState(""); // Giá trị tìm kiếm
-  const [filteredMovies, setFilteredMovies] = useState([]); // Danh sách phim sau khi lọc
+  const { genre } = useParams();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredMovies, setFilteredMovies] = useState([]);
 
   useEffect(() => {
-    // Lọc phim theo thể loại
-    let filteredByGenre = moviesData;
+    const allMovies = getMovies();
+
+    let filteredByGenre = allMovies;
     if (genre) {
-      filteredByGenre = moviesData.filter(
-        (movie) => movie.genre.toLowerCase() === genre.toLowerCase()
+      filteredByGenre = allMovies.filter(
+        (movie) => (movie.genre || "").toLowerCase() === genre.toLowerCase()
       );
     }
 
-    // Lọc phim dựa trên từ khóa tìm kiếm
-    const filteredBySearch = filteredByGenre.filter(
-      (movie) =>
-        movie.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        movie.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredBySearch = filteredByGenre.filter((movie) => {
+      const title = (movie.title || "").toLowerCase();
+      const description = (movie.description || "").toLowerCase();
+      const term = searchTerm.toLowerCase();
+
+      return title.includes(term) || description.includes(term);
+    });
 
     setFilteredMovies(filteredBySearch);
-  }, [genre, searchTerm]); // Chạy lại mỗi khi "genre" hoặc "searchTerm" thay đổi
+  }, [genre, searchTerm]);
 
   return (
     <div className="movie-list-page">

@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import moviesData from "../data/moviesData"; // Import dữ liệu phim từ file riêng
+import { getMovies } from "../data/moviesData";
 import "./MovieDetail.css";
 
 const MovieDetail = () => {
   const { id } = useParams();
   const [movie, setMovie] = useState(null);
-  const [hasLiked, setHasLiked] = useState(false); // Trạng thái kiểm tra đã like hay chưa
+  const [hasLiked, setHasLiked] = useState(false);
 
   useEffect(() => {
-    const foundMovie = moviesData.find((movie) => movie.id === parseInt(id));
+    const allMovies = getMovies();
+    const foundMovie = allMovies.find((movie) => movie.id === parseInt(id));
     if (foundMovie) {
-      foundMovie.views += 0.5; // Tăng lượt xem mỗi lần mở trang
-      setMovie(foundMovie);
+      const updatedMovie = { ...foundMovie, views: (foundMovie.views || 0) + 0.5 };
+      setMovie(updatedMovie);
     }
   }, [id]);
 

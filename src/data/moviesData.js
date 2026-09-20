@@ -883,4 +883,15 @@ const moviesData = [
   },
 ];
 
+export const getMovies = () => {
+  try {
+    const savedMovies = JSON.parse(localStorage.getItem("movies"));
+    return Array.isArray(savedMovies) && savedMovies.length > 0
+      ? savedMovies
+      : moviesData;
+  } catch (error) {
+    return moviesData;
+  }
+};
+
 export default moviesData;

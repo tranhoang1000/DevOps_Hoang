@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -11,13 +11,26 @@ import AdminPage from "./pages/AdminPage";
 import "./assets/styles.css";
 
 const App = () => {
-  // State để lưu thông tin người dùng đã đăng nhập
-  const [loggedInUser, setLoggedInUser] = useState(null);
+  const [loggedInUser, setLoggedInUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem("loggedInUser");
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (error) {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    if (loggedInUser) {
+      localStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));
+    } else {
+      localStorage.removeItem("loggedInUser");
+    }
+  }, [loggedInUser]);
 
   return (
     <Router>
-      {/* Truyền thông tin người dùng đã đăng nhập xuống Navbar */}
-      <Navbar loggedInUser={loggedInUser} />
+      <Navbar loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/imageSlider" element={<ImageSlider />} />
@@ -28,7 +41,6 @@ const App = () => {
         <Route path="/movies" element={<MovieListPage />} />
         <Route path="/movies/:genre" element={<MovieListPage />} />
         <Route path="/movie/:id" element={<MovieDetail />} />
-        {/* Truyền loggedInUser vào AdminPage */}
         <Route path="/admin" element={<AdminPage loggedInUser={loggedInUser} />} />
       </Routes>
       <Footer />
