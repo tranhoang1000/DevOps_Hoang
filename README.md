@@ -2,6 +2,21 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Deploy to AWS Amplify
+
+This repository is configured for AWS Amplify Hosting. To deploy:
+
+1. Push the project to GitHub.
+2. In the AWS Console, open **AWS Amplify** and choose **Create new app** > **Host web app**.
+3. Connect GitHub, select this repository, and choose the branch to deploy. Amplify will use `amplify.yml` to run `npm ci` and `npm run build`, then publish the `build` directory.
+4. Before or after the first deployment, open the app's **Rewrites and redirects** settings and add a rewrite for the React single-page app:
+   - Source address: `/<*>`
+   - Target address: `/index.html`
+   - Type: `200 (Rewrite)`
+5. Save and wait for the deployment to finish. Amplify provides an HTTPS URL; pushes to the connected branch deploy automatically.
+
+No AWS access keys need to be added to GitHub for this setup; authorize Amplify to access the repository when prompted.
+
 ## Available Scripts
 
 In the project directory, you can run:
