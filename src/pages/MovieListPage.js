@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import MovieList from "../components/MovieList";
-import { getMovies } from "../data/moviesData";
+import { fetchMovies } from "../services/api";
 
 const MovieListPage = () => {
   const { genre } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredMovies, setFilteredMovies] = useState([]);
+  const [allMovies, setAllMovies] = useState([]);
 
   useEffect(() => {
-    const allMovies = getMovies();
+    fetchMovies().then((data) => {
+      setAllMovies(data);
+    });
+  }, []);
 
+  useEffect(() => {
     let filteredByGenre = allMovies;
     if (genre) {
       filteredByGenre = allMovies.filter(
@@ -27,7 +32,7 @@ const MovieListPage = () => {
     });
 
     setFilteredMovies(filteredBySearch);
-  }, [genre, searchTerm]);
+  }, [genre, searchTerm, allMovies]);
 
   return (
     <div className="movie-list-page">

@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate } from "react-router-dom"; // Điều hướng sau khi đăng nhập
+import { apiLogin, apiRegister } from "../services/api";
 
 // Validation schemas
 const loginSchema = Yup.object().shape({
@@ -37,40 +38,24 @@ const AuthForm = ({ setLoggedInUser }) => {
     mode: "onBlur",
   });
 
-  const onSubmit = (data) => {
-    if (isLogin && data.email === "admin123@gmail.com" && data.password === "admin123") {
-      alert("Đăng nhập thành công với tư cách Admin!");
-      const adminUser = { username: "Admin", email: data.email, isAdmin: true };
-      setLoggedInUser(adminUser);
-      navigate("/admin");
-      return;
-    }
-
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-
-    if (isLogin) {
-      const user = users.find(
-        (user) => user.email === data.email && user.password === data.password
-      );
-
-      if (user) {
-        alert(`Đăng nhập thành công! Chào mừng ${user.username}`);
-        setLoggedInUser({ ...user, isAdmin: false });
-        navigate("/");
+  const onSubmit = async (data) => {
+    try {
+      if (isLogin) {
+        const result = await apiLogin(data.email, data.password);
+        alert(result.message || "Đăng nhập thành công!");
+        setLoggedInUser(result.user);
+        if (result.user.isAdmin) {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       } else {
-        alert("Sai email hoặc mật khẩu. Vui lòng thử lại.");
-      }
-    } else {
-      const isUserExist = users.some((user) => user.email === data.email);
-
-      if (isUserExist) {
-        alert("Email đã được đăng ký. Vui lòng sử dụng email khác.");
-      } else {
-        users.push(data);
-        localStorage.setItem("users", JSON.stringify(users));
-        alert("Đăng ký thành công! Bây giờ bạn có thể đăng nhập.");
+        const result = await apiRegister(data);
+        alert(result.message || "Đăng ký thành công! Hãy đăng nhập.");
         setIsLogin(true);
       }
+    } catch (err) {
+      alert(err.message || "Đã xảy ra lỗi, vui lòng thử lại!");
     }
   };
 

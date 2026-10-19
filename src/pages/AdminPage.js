@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import moviesData from "../data/moviesData";
+import { fetchMovies, createMovie, updateMovie, deleteMovie } from "../services/api";
 
 const AdminPage = ({ loggedInUser }) => {
   const navigate = useNavigate();
@@ -17,12 +17,12 @@ const AdminPage = ({ loggedInUser }) => {
   const [editMovie, setEditMovie] = useState(null);
 
   useEffect(() => {
-    const savedMovies = JSON.parse(localStorage.getItem("movies")) || moviesData;
-    setMovies(savedMovies);
+    loadMovies();
   }, []);
 
-  const saveMoviesToLocalStorage = (movies) => {
-    localStorage.setItem("movies", JSON.stringify(movies));
+  const loadMovies = async () => {
+    const list = await fetchMovies();
+    setMovies(list);
   };
 
   if (!loggedInUser?.isAdmin) {
@@ -34,7 +34,7 @@ const AdminPage = ({ loggedInUser }) => {
     );
   }
 
-  const handleAddMovie = () => {
+  const handleAddMovie = async () => {
     if (
       !newMovie.title ||
       !newMovie.genre ||
@@ -46,13 +46,8 @@ const AdminPage = ({ loggedInUser }) => {
       alert("Vui lòng điền đầy đủ thông tin phim.");
       return;
     }
-    const newMovieData = {
-      id: Date.now(),
-      ...newMovie,
-    };
-    const updatedMovies = [...movies, newMovieData];
-    setMovies(updatedMovies);
-    saveMoviesToLocalStorage(updatedMovies);
+    await createMovie(newMovie);
+    await loadMovies();
     setNewMovie({
       title: "",
       genre: "",
@@ -62,12 +57,14 @@ const AdminPage = ({ loggedInUser }) => {
       videoUrl: "",
       subtitleUrl: "",
     });
+    alert("Thêm phim thành công!");
   };
 
-  const handleDeleteMovie = (id) => {
-    const updatedMovies = movies.filter((movie) => movie.id !== id);
-    setMovies(updatedMovies);
-    saveMoviesToLocalStorage(updatedMovies);
+  const handleDeleteMovie = async (id) => {
+    if (window.confirm("Bạn có chắc muốn xóa phim này?")) {
+      await deleteMovie(id);
+      await loadMovies();
+    }
   };
 
   const handleEditMovie = (movie) => {
@@ -83,7 +80,7 @@ const AdminPage = ({ loggedInUser }) => {
     });
   };
 
-  const handleUpdateMovie = () => {
+  const handleUpdateMovie = async () => {
     if (
       !newMovie.title ||
       !newMovie.genre ||
@@ -95,11 +92,8 @@ const AdminPage = ({ loggedInUser }) => {
       alert("Vui lòng điền đầy đủ thông tin.");
       return;
     }
-    const updatedMovies = movies.map((movie) =>
-      movie.id === editMovie.id ? { ...movie, ...newMovie } : movie
-    );
-    setMovies(updatedMovies);
-    saveMoviesToLocalStorage(updatedMovies);
+    await updateMovie(editMovie.id, newMovie);
+    await loadMovies();
     setNewMovie({
       title: "",
       genre: "",
@@ -110,6 +104,7 @@ const AdminPage = ({ loggedInUser }) => {
       subtitleUrl: "",
     });
     setEditMovie(null);
+    alert("Cập nhật phim thành công!");
   };
 
   return (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { getMovies } from "../data/moviesData";
+import { fetchMovieById, updateMovie } from "../services/api";
 import "./MovieDetail.css";
 
 const MovieDetail = () => {
@@ -9,12 +9,13 @@ const MovieDetail = () => {
   const [hasLiked, setHasLiked] = useState(false);
 
   useEffect(() => {
-    const allMovies = getMovies();
-    const foundMovie = allMovies.find((movie) => movie.id === parseInt(id));
-    if (foundMovie) {
-      const updatedMovie = { ...foundMovie, views: (foundMovie.views || 0) + 0.5 };
-      setMovie(updatedMovie);
-    }
+    fetchMovieById(id).then((foundMovie) => {
+      if (foundMovie) {
+        const newViews = (foundMovie.views || 0) + 1;
+        setMovie({ ...foundMovie, views: newViews });
+        updateMovie(foundMovie.id, { views: newViews });
+      }
+    });
   }, [id]);
 
   if (!movie) {
@@ -22,28 +23,16 @@ const MovieDetail = () => {
   }
 
   const handleLike = () => {
-    if (hasLiked) {
-      // Nếu đã like, thực hiện unlike
-      setMovie(prevMovie => ({
-        ...prevMovie,
-        likes: prevMovie.likes - 1
-      }));
-      setHasLiked(false); // Đánh dấu là đã un-like
-    } else {
-      // Nếu chưa like, thực hiện like
-      setMovie(prevMovie => ({
-        ...prevMovie,
-        likes: prevMovie.likes + 1
-      }));
-      setHasLiked(true); // Đánh dấu là đã like
-    }
+    const currentLikes = movie.likes || 0;
+    const newLikes = hasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1;
+    setMovie((prev) => ({ ...prev, likes: newLikes }));
+    setHasLiked(!hasLiked);
+    updateMovie(movie.id, { likes: newLikes });
   };
 
   const handleRating = (rating) => {
-    setMovie(prevMovie => ({
-      ...prevMovie,
-      rating: rating
-    }));
+    setMovie((prev) => ({ ...prev, rating }));
+    updateMovie(movie.id, { rating });
   };
 
   return (
